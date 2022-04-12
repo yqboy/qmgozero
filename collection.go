@@ -3,16 +3,18 @@ package qmg
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/qiniu/qmgo"
 	"github.com/qiniu/qmgo/options"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/timex"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type (
 	Database interface {
-		Insert(coll string, docs interface{}, opts ...options.InsertOneOptions) error
-		InsertMany(coll string, docs interface{}, opts ...options.InsertManyOptions) error
+		Insert(coll string, docs interface{}, opts ...options.InsertOneOptions) (string, error)
+		InsertMany(coll string, docs interface{}, opts ...options.InsertManyOptions) ([]string, error)
 		Remove(coll string, selector interface{}, opts ...options.RemoveOptions) error
 		RemoveAll(coll string, selector interface{}, opts ...options.RemoveOptions) error
 		Update(coll string, selector, update interface{}, opts ...options.UpdateOptions) error
@@ -38,16 +40,31 @@ func newCli(ctx context.Context, cli *qmgo.Client, db *qmgo.Database) Database {
 	}
 }
 
-func (c *decoratedCli) Insert(coll string, doc interface{}, opts ...options.InsertOneOptions) (err error) {
-	_, err = c.db.Collection(coll).InsertOne(c.ctx, doc, opts...)
+func (c *decoratedCli) Insert(coll string, doc interface{}, opts ...options.InsertOneOptions) (string, error) {
+	result, err := c.db.Collection(coll).InsertOne(c.ctx, doc, opts...)
 	c.logDuration("insertOne", err, doc)
-	return
+	if err != nil {
+		return "", err
+	}
+
+	id := result.InsertedID.(primitive.ObjectID).Hex()
+
+	return id, nil
 }
 
-func (c *decoratedCli) InsertMany(coll string, docs interface{}, opts ...options.InsertManyOptions) (err error) {
-	_, err = c.db.Collection(coll).InsertMany(c.ctx, docs, opts...)
+func (c *decoratedCli) InsertMany(coll string, docs interface{}, opts ...options.InsertManyOptions) ([]string, error) {
+	result, err := c.db.Collection(coll).InsertMany(c.ctx, docs, opts...)
 	c.logDuration("insertMany", err, docs)
-	return
+	if err != nil {
+		return nil, err
+	}
+
+	ids := []string{}
+	for _, id := range result.InsertedIDs {
+		ids = append(ids, id.(primitive.ObjectID).Hex())
+	}
+
+	return ids, nil
 }
 
 func (c *decoratedCli) Remove(coll string, selector interface{}, opts ...options.RemoveOptions) (err error) {

@@ -37,26 +37,30 @@ func NewModel(url, database string, opts ...options.ClientOptions) (*Model, erro
 	}, nil
 }
 
-func (m *Model) Insert(coll string, doc interface{}, opts ...options.InsertOneOptions) (err error) {
+func (m *Model) Insert(coll string, doc interface{}, opts ...options.InsertOneOptions) (string, error) {
 	return m.db.Insert(coll, doc, opts...)
 }
 
-func (m *Model) Remove(coll string, selector interface{}, opts ...options.RemoveOptions) (err error) {
+func (m *Model) InsertMany(coll string, doc interface{}, opts ...options.InsertManyOptions) ([]string, error) {
+	return m.db.InsertMany(coll, doc, opts...)
+}
+
+func (m *Model) Remove(coll string, selector interface{}, opts ...options.RemoveOptions) error {
 	return m.db.Remove(coll, selector, opts...)
 }
-func (m *Model) RemoveAll(coll string, selector interface{}, opts ...options.RemoveOptions) (err error) {
+func (m *Model) RemoveAll(coll string, selector interface{}, opts ...options.RemoveOptions) error {
 	return m.db.RemoveAll(coll, selector, opts...)
 }
 
-func (m *Model) Update(coll string, selector, update interface{}, opts ...options.UpdateOptions) (err error) {
+func (m *Model) Update(coll string, selector, update interface{}, opts ...options.UpdateOptions) error {
 	return m.db.Update(coll, selector, update, opts...)
 }
 
-func (m *Model) UpdateAll(coll string, selector, update interface{}, opts ...options.UpdateOptions) (err error) {
+func (m *Model) UpdateAll(coll string, selector, update interface{}, opts ...options.UpdateOptions) error {
 	return m.db.UpdateAll(coll, selector, update, opts...)
 }
 
-func (m *Model) Upsert(coll string, selector, update interface{}, opts ...options.UpsertOptions) (err error) {
+func (m *Model) Upsert(coll string, selector, update interface{}, opts ...options.UpsertOptions) error {
 	return m.db.Upsert(coll, selector, update, opts...)
 }
 
